@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>월드 매치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Gothic:wght@400;700;800&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f5f0;--bg2:#ffffff;--bg3:#f4f0e6;--bg4:#e8e2d4;
+  --gold:#946408;--gold2:#7a5206;--gold-dim:rgba(201,150,40,0.16);
+  --blue:#1d5fbf;--blue-bg:rgba(29,95,191,0.09);
+  --red:#c2410c;--red-bg:rgba(194,65,12,0.09);
+  --green:#17794a;--green-bg:rgba(23,121,74,0.10);
+  --text:#1d2129;--text2:#3f4552;--text3:#646a76;
+  --border:rgba(148,100,8,0.40);--border2:rgba(110,90,50,0.22);
+  --r:10px;--r-lg:16px;--shadow:0 4px 18px rgba(60,40,0,0.08);
+  --emoji:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Nanum Gothic',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(226,179,60,0.18) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(29,95,191,0.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:36px 16px 80px;}
+.flag{font-family:var(--emoji);}
+.screen{animation:fadeUp .4s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hidden{display:none !important;}
+
+/* ── 공통 ── */
+.card{background:var(--bg2);box-shadow:var(--shadow);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:18px;}
+.label{font-size:11px;letter-spacing:.12em;color:var(--gold);font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.label::before,.label::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-gold{width:100%;padding:14px;background:linear-gradient(135deg,#e2b33c,#f3cf6e);color:#2a1c00;border:none;border-radius:var(--r);font-family:'Black Han Sans',sans-serif;font-size:17px;letter-spacing:.1em;cursor:pointer;box-shadow:0 4px 20px rgba(201,168,76,.35);transition:transform .15s,box-shadow .15s;}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.45);}
+.btn-line{flex:1;padding:12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--gold2);font-family:'Nanum Gothic',sans-serif;font-weight:800;font-size:14px;cursor:pointer;}
+.btn-line:hover{background:var(--bg3);}
+
+/* ── 시작 화면 ── */
+.start-header{text-align:center;margin-bottom:26px;}
+.start-globe{font-size:46px;font-family:var(--emoji);display:inline-block;animation:spin 6s ease-in-out infinite;}
+@keyframes spin{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.title-main{font-family:'Black Han Sans',sans-serif;font-size:40px;letter-spacing:2px;background:linear-gradient(135deg,#b07a10 0%,#8a5c06 55%,#5e3e03 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:6px;}
+.title-sub{font-size:14px;color:var(--text2);margin-top:6px;font-weight:700;}
+.vs-demo{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.vs-demo .mini{flex:1;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--r);padding:14px 10px;text-align:center;font-size:13px;font-weight:700;color:var(--text2);box-shadow:var(--shadow);}
+.vs-demo .mini.a{border-color:rgba(29,95,191,.35);}
+.vs-demo .mini.b{border-color:rgba(194,65,12,.35);}
+.vs-badge{font-family:'Black Han Sans',sans-serif;color:var(--gold);font-size:20px;}
+.rule-row{display:flex;gap:10px;font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.rule-num{width:20px;height:20px;border-radius:50%;background:var(--gold-dim);color:var(--gold);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.axis-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;}
+.chip{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:700;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+.chip.geo{background:var(--green-bg);color:var(--green);border-color:transparent;}
+.chip.soc{background:var(--blue-bg);color:var(--blue);border-color:transparent;}
+
+/* ── 문항 화면 ── */
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.q-count{font-family:'Black Han Sans',sans-serif;font-size:18px;color:var(--gold2);white-space:nowrap;}
+.progress{flex:1;height:8px;background:var(--bg4);border-radius:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#e2b33c,#c98f12);border-radius:8px;transition:width .4s ease;}
+.star-left{font-size:12px;color:var(--text3);font-weight:700;white-space:nowrap;}
+.q-axis{text-align:center;margin:18px 0 6px;}
+.q-title{text-align:center;font-family:'Black Han Sans',sans-serif;font-size:24px;color:var(--text);margin-bottom:18px;letter-spacing:.5px;}
+.duel{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;}
+.vs-mid{display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:22px;color:var(--gold);}
+.opt{perspective:900px;cursor:pointer;min-height:230px;border:none;background:none;padding:0;font:inherit;color:inherit;text-align:center;}
+.opt:disabled{cursor:default;}
+.opt-inner{position:relative;width:100%;height:100%;min-height:230px;transition:transform .6s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;}
+.opt.flipped .opt-inner{transform:rotateY(180deg);}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r-lg);padding:18px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg2);box-shadow:var(--shadow);border:2px solid var(--border2);}
+.opt.a .face.front{border-color:rgba(29,95,191,.30);}
+.opt.b .face.front{border-color:rgba(194,65,12,.30);}
+.opt:not(:disabled):hover .face.front{transform:translateY(-4px);box-shadow:0 10px 26px rgba(60,40,0,.13);}
+.opt.a:not(:disabled):hover .face.front{border-color:var(--blue);}
+.opt.b:not(:disabled):hover .face.front{border-color:var(--red);}
+.face.front{transition:transform .15s,box-shadow .15s,border-color .15s;}
+.opt-tag{font-family:'Black Han Sans',sans-serif;font-size:15px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.opt.a .opt-tag{background:var(--blue-bg);color:var(--blue);}
+.opt.b .opt-tag{background:var(--red-bg);color:var(--red);}
+.opt-icon{font-size:40px;font-family:var(--emoji);line-height:1;}
+.opt-text{font-size:15px;font-weight:800;line-height:1.55;word-break:keep-all;}
+.face.back{transform:rotateY(180deg);background:var(--bg3);}
+.face.back .big-flag{font-size:52px;font-family:var(--emoji);line-height:1;}
+.face.back .cname{font-family:'Black Han Sans',sans-serif;font-size:22px;}
+.face.back .fact{font-size:12.5px;color:var(--text2);line-height:1.6;word-break:keep-all;}
+.opt.chosen .face.back{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,150,40,.22),var(--shadow);background:#fff8e6;}
+.opt.notchosen .face.back{opacity:.6;}
+.my-pick{font-size:11px;font-weight:800;color:#2a1c00;background:linear-gradient(135deg,#e2b33c,#f3cf6e);padding:2px 10px;border-radius:20px;}
+.star-row{display:flex;justify-content:center;margin-top:16px;}
+.star-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:30px;border:1.5px dashed var(--border);background:var(--bg2);font-family:'Nanum Gothic',sans-serif;font-size:13.5px;font-weight:800;color:var(--text2);cursor:pointer;transition:all .15s;}
+.star-btn .s{font-family:var(--emoji);filter:grayscale(1);opacity:.5;transition:all .15s;}
+.star-btn.on{border-style:solid;border-color:var(--gold);background:#fff4d6;color:var(--gold2);}
+.star-btn.on .s{filter:none;opacity:1;transform:scale(1.2);}
+.star-btn:disabled{opacity:.4;cursor:not-allowed;}
+.reveal-msg{text-align:center;margin-top:16px;font-size:14px;color:var(--text2);font-weight:700;min-height:22px;}
+.next-wrap{margin-top:14px;}
+
+/* ── 분석 중 ── */
+.loading{text-align:center;padding:80px 0;}
+.loading .spin-globe{font-size:60px;font-family:var(--emoji);display:inline-block;animation:rot 1s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loading p{margin-top:16px;font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--gold2);}
+.flag-roll{margin-top:10px;font-size:30px;font-family:var(--emoji);height:40px;}
+
+/* ── 결과 ── */
+.res-head{text-align:center;margin-bottom:16px;}
+.res-head .k{font-size:13px;color:var(--text3);font-weight:800;letter-spacing:.1em;}
+.res-head h2{font-family:'Black Han Sans',sans-serif;font-size:28px;margin-top:6px;line-height:1.35;}
+.res-head h2 .c1{color:var(--gold2);}
+.mix{margin:6px 0 4px;}
+.mix-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.mix-flag{font-size:42px;font-family:var(--emoji);width:52px;text-align:center;line-height:1;}
+.mix-body{flex:1;}
+.mix-name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:16px;margin-bottom:6px;}
+.mix-pct{font-family:'Black Han Sans',sans-serif;font-size:30px;color:var(--gold2);}
+.mix-row.second .mix-pct{color:var(--text3);font-size:24px;}
+.bar{height:16px;background:var(--bg4);border-radius:10px;overflow:hidden;}
+.bar-fill{height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,#e2b33c,#c98f12);transition:width 1.4s cubic-bezier(.2,.8,.2,1);}
+.mix-row.second .bar-fill{background:linear-gradient(90deg,#b9c4d6,#8796ae);}
+.summary{background:var(--bg3);border-radius:var(--r);padding:14px 16px;font-size:14.5px;line-height:1.75;font-weight:700;color:var(--text);text-align:center;word-break:keep-all;}
+.radar-wrap{display:flex;flex-direction:column;align-items:center;}
+.radar-wrap svg{width:100%;max-width:500px;height:auto;}
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:12.5px;font-weight:700;color:var(--text2);margin-top:6px;}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+.axis-list{margin-top:14px;display:flex;flex-direction:column;gap:9px;}
+.axis-item{display:grid;grid-template-columns:124px 1fr 124px;align-items:center;gap:8px;font-size:12px;color:var(--text2);font-weight:700;}
+.axis-item .l{text-align:right;}
+.axis-track{position:relative;height:8px;background:var(--bg4);border-radius:8px;}
+.axis-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.axis-dot.me{background:#c98f12;z-index:2;}
+.axis-dot.cn{background:var(--blue);width:10px;height:10px;}
+.info-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.info-tab{flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border2);background:var(--bg2);font-family:'Nanum Gothic',sans-serif;font-weight:800;font-size:13px;color:var(--text2);cursor:pointer;}
+.info-tab.on{border-color:var(--gold);background:var(--gold-dim);color:var(--gold2);}
+.info-body ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.info-body li{font-size:13.5px;line-height:1.65;color:var(--text2);padding-left:18px;position:relative;word-break:keep-all;}
+.info-body li::before{content:'•';position:absolute;left:4px;color:var(--gold);font-weight:800;}
+.info-body .worry li::before{content:'?';color:var(--red);}
+.stat-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:6px;}
+.stat-table th,.stat-table td{padding:7px 6px;border-bottom:1px solid var(--border2);text-align:right;}
+.stat-table thead th{font-size:12.5px;color:var(--gold2);font-weight:800;border-bottom:1.5px solid var(--border);}
+.stat-table tbody th{text-align:left;font-weight:700;color:var(--text2);}
+.stat-table td{font-weight:800;color:var(--text);white-space:nowrap;}
+.stat-table td small{font-size:10.5px;color:var(--text3);font-weight:700;margin-left:2px;}
+.stat-table .est{font-size:9.5px;color:var(--red);background:var(--red-bg);padding:1px 4px;border-radius:4px;}
+.stat-src{font-size:11px;color:var(--text3);margin-bottom:14px;}
+.discuss{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--blue-bg);font-size:13px;color:var(--blue);font-weight:700;line-height:1.6;}
+.rank-list{display:flex;flex-direction:column;gap:6px;}
+.rank-row{display:grid;grid-template-columns:22px 30px 1fr 110px 40px;align-items:center;gap:8px;font-size:13.5px;font-weight:700;}
+.rank-row .n{color:var(--text3);font-size:12px;text-align:right;}
+.rank-row .f{font-family:var(--emoji);font-size:20px;text-align:center;}
+.rank-row .mini-bar{height:7px;background:var(--bg4);border-radius:6px;overflow:hidden;}
+.rank-row .mini-bar div{height:100%;background:#d8b25a;border-radius:6px;}
+.rank-row .p{text-align:right;color:var(--text3);font-size:12.5px;}
+.rank-row.top .mini-bar div{background:#c98f12;}
+.btn-row{display:flex;gap:10px;margin-top:4px;}
+.note{font-size:11.5px;color:var(--text3);line-height:1.6;text-align:center;margin-top:18px;}
+details summary{cursor:pointer;font-weight:800;font-size:13.5px;color:var(--gold2);list-style:none;text-align:center;}
+details summary::-webkit-details-marker{display:none;}
+details[open] summary{margin-bottom:12px;}
+
+@media (max-width:520px){
+  .title-main{font-size:34px;}
+  .duel{grid-template-columns:1fr;gap:8px;}
+  .vs-mid{font-size:18px;}
+  .opt,.opt-inner{min-height:170px;}
+  .opt-icon{font-size:32px;}
+  .q-title{font-size:21px;}
+  .axis-item{grid-template-columns:84px 1fr 84px;font-size:10.5px;}
+  .rank-row{grid-template-columns:20px 26px 1fr 70px 36px;}
+  .res-head h2{font-size:24px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+
+<!-- 시작 -->
+<section id="s-start" class="screen">
+  <div class="start-header">
+    <div class="start-globe">🌏</div>
+    <div class="title-main">월드 매치</div>
+    <div class="title-sub">12번의 밸런스게임으로 찾는, 나랑 맞는 나라</div>
+  </div>
+  <div class="vs-demo">
+    <div class="mini a">🏖️ 1년 내내 반팔</div>
+    <div class="vs-badge">VS</div>
+    <div class="mini b">❄️ 오로라 뜨는 겨울</div>
+  </div>
+  <div class="card">
+    <div class="label">게임 방법</div>
+    <div class="rule-row"><span class="rule-num">1</span><span>두 나라의 모습이 <b>이름을 가린 채</b> 나와요. 더 끌리는 쪽을 고르세요.</span></div>
+    <div class="rule-row"><span class="rule-num">2</span><span>고르면 카드가 뒤집히며 <b>어느 나라 이야기였는지</b> 공개돼요.</span></div>
+    <div class="rule-row"><span class="rule-num">3</span><span>꼭 지키고 싶은 선택엔 <b>⭐ 중요해</b>를 눌러 주세요. (최대 3개, 2배로 계산)</span></div>
+    <div class="rule-row"><span class="rule-num">4</span><span>12판이 끝나면 <b>나와 닮은 나라 조합</b>을 알려 드려요.</span></div>
+  </div>
+  <div class="card">
+    <div class="label">이런 기준으로 비교해요</div>
+    <div class="axis-chips" id="axisChips"></div>
+  </div>
+  <button class="btn-gold" id="btnStart">시작하기</button>
+</section>
+
+<!-- 문항 -->
+<section id="s-q" class="hidden">
+  <div class="top-bar">
+    <div class="q-count" id="qCount">1 / 12</div>
+    <div class="progress"><div class="progress-fill" id="progFill"></div></div>
+    <div class="star-left" id="starLeft">⭐ 3</div>
+  </div>
+  <div class="q-axis" id="qAxis"></div>
+  <div class="q-title" id="qTitle"></div>
+  <div class="duel">
+    <button class="opt a" id="optA"><div class="opt-inner">
+      <div class="face front"><span class="opt-tag">A</span><span class="opt-icon"></span><span class="opt-text"></span></div>
+      <div class="face back"><span class="my-pick hidden">내 선택</span><span class="big-flag"></span><span class="cname"></span><span class="fact"></span></div>
+    </div></button>
+    <div class="vs-mid">VS</div>
+    <button class="opt b" id="optB"><div class="opt-inner">
+      <div class="face front"><span class="opt-tag">B</span><span class="opt-icon"></span><span class="opt-text"></span></div>
+      <div class="face back"><span class="my-pick hidden">내 선택</span><span class="big-flag"></span><span class="cname"></span><span class="fact"></span></div>
+    </div></button>
+  </div>
+  <div class="star-row"><button class="star-btn" id="starBtn"><span class="s">⭐</span> 이 선택은 중요해</button></div>
+  <div class="reveal-msg" id="revealMsg"></div>
+  <div class="next-wrap hidden" id="nextWrap"><button class="btn-gold" id="btnNext">다음 →</button></div>
+</section>
+
+<!-- 분석 중 -->
+<section id="s-load" class="hidden">
+  <div class="loading">
+    <div class="spin-globe">🌍</div>
+    <p>나와 닮은 나라를 찾는 중…</p>
+    <div class="flag-roll" id="flagRoll"></div>
+  </div>
+</section>
+
+<!-- 결과 -->
+<section id="s-res" class="hidden">
+  <div class="res-head">
+    <div class="k">나와 닮은 나라 조합</div>
+    <h2 id="resTitle"></h2>
+  </div>
+  <div class="card mix" id="mixBox"></div>
+  <div class="summary" id="summary"></div>
+  <div style="height:18px"></div>
+
+  <div class="card">
+    <div class="label">성향 비교</div>
+    <div class="radar-wrap" id="radar"></div>
+    <div class="legend">
+      <span><i style="background:#c98f12"></i>나</span>
+      <span><i style="background:#1d5fbf"></i><span id="lgCountry"></span></span>
+      <span><i style="background:repeating-linear-gradient(90deg,#8a8f99 0 4px,transparent 4px 7px)"></i>한국</span>
+    </div>
+    <div class="axis-list" id="axisList"></div>
+  </div>
+
+  <div class="card">
+    <div class="label" id="infoLabel">나라 알아보기</div>
+    <div class="info-tabs">
+      <button class="info-tab on" data-tab="facts">📊 근거 데이터</button>
+      <button class="info-tab" data-tab="worry">⚖️ 이 나라의 고민거리</button>
+    </div>
+    <div class="info-body" id="infoBody"></div>
+    <div class="discuss" id="discuss"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary id="rankSummary">▾ 전체 순위 보기</summary>
+      <div class="rank-list" id="rankList"></div>
+    </details>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-line" id="btnReview">내 선택 다시 보기</button>
+    <button class="btn-line" id="btnRetry">다시 하기</button>
+  </div>
+  <div class="card hidden" id="reviewBox" style="margin-top:16px"></div>
+  <p class="note">※ 프로토타입입니다. 국가 점수는 OWID·세계은행 통계(2022~2025년)를 1~5단계로 환산했고, 설명 문구는 검토 중이에요.<br/>결과는 "그 나라 사람이 된다"가 아니라 <b>내 선택과 그 나라의 평균적인 모습이 얼마나 닮았는지</b>를 뜻해요.<br/>실제 나라 안에서도 지역과 사람마다 모습은 다양해요.</p>
+</section>
+
+</div>
+
+<script>
+/* ═══════════ 데이터 ═══════════ */
+// 축: 1(A쪽) ~ 5(B쪽). 국가 점수(TIERS)는 아래 STATS를 기준표로 환산한 값 (근거: 국가프로필_근거 엑셀)
+const AXES = [
+  {key:'climate', name:'기후',     area:'geo', L:'더운 곳',        R:'추운 곳',        Lp:'햇살 가득한 더운 날씨', Rp:'눈 내리는 추운 날씨'},
+  {key:'space',   name:'정주 공간', area:'geo', L:'북적이는 도시',   R:'한적한 자연',     Lp:'편리하고 북적이는 대도시', Rp:'넓고 한적한 자연'},
+  {key:'welfare', name:'세금·복지', area:'soc', L:'많이 내고 많이 받기', R:'적게 내고 스스로', Lp:'세금을 더 내더라도 함께 누리는 복지', Rp:'세금은 적게, 필요한 건 스스로 선택하는 삶'},
+  {key:'work',    name:'일과 삶',   area:'soc', L:'짧게 일하고 여유', R:'길게 일하고 성장', Lp:'짧게 일하고 여유 있는 저녁', Rp:'열심히 일하고 빠르게 성장하는 사회'},
+  {key:'divers',  name:'문화 다양성', area:'soc', L:'외국 출신 이웃 많은', R:'오래 살던 이웃 중심', Lp:'여러 나라 출신 이웃이 함께 사는 동네', Rp:'오래 살아온 사람들이 이어 가는 전통'},
+  {key:'env',     name:'에너지',    area:'geo', L:'재생에너지 중심', R:'화석연료 중심',   Lp:'햇빛·바람·물로 만드는 에너지', Rp:'석유·석탄 같은 자원으로 누리는 풍요'},
+];
+
+const TIERS = {"AUS":[2,5,3,2,1,3],"BRA":[1,4,2,4,5,1],"CAN":[5,5,2,3,2,2],"CHL":[4,4,4,4,4,2],"CHN":[4,2,4,5,5,3],"CRI":[1,3,4,5,3,1],"EGY":[1,3,5,5,5,5],"DEU":[3,2,2,1,2,3],"ISL":[5,4,2,1,1,1],"IND":[1,2,4,5,5,4],"ITA":[3,2,1,3,3,3],"JPN":[3,1,2,2,4,4],"KEN":[1,4,5,4,5,1],"MEX":[2,3,5,2,5,4],"MNG":[5,5,3,5,5,5],"NLD":[3,1,1,1,2,3],"NZL":[3,4,2,3,1,1],"NOR":[5,4,1,1,2,1],"PER":[2,4,5,4,4,2],"RUS":[5,5,3,4,4,4],"SGP":[1,1,5,5,1,5],"ZAF":[2,3,3,5,4,5],"KOR":[3,1,3,4,4,5],"ESP":[3,3,2,2,2,3],"CHE":[4,2,3,2,1,2],"ARE":[1,2,4,5,1,5],"USA":[3,4,4,3,2,4]};
+const STATS = {"AUS":{"temp":[22.64,2025],"hours":[1611.13,2023],"tax":[30.36,2022],"dens":[3.54,2024],"urban":[87.72,2025],"migr":[30.4,2024],"ren":[38.6,2025]},"BRA":{"temp":[25.16,2025],"hours":[1993.72,2023],"tax":[32.73,2022],"dens":[25.36,2024],"urban":[88.18,2025],"migr":[0.7,2024],"ren":[86.6,2025]},"CAN":{"temp":[-2.55,2025],"hours":[1731.02,2023],"tax":[34.78,2023],"dens":[4.69,2024],"urban":[82.88,2025],"migr":[22.2,2024],"ren":[63.9,2025]},"CHL":{"temp":[9.48,2025],"hours":[1949.71,2023],"tax":[18.88,2023],"dens":[26.64,2024],"urban":[89.18,2025],"migr":[7.8,2024],"ren":[66.4,2025]},"CHN":{"temp":[8.21,2025],"hours":[2327.79,2023],"tax":[22.1,2023],"dens":[150.08,2024],"urban":[66.34,2025],"migr":[0.1,2024],"ren":[37,2025]},"CRI":{"temp":[23.34,2025],"hours":[2176.92,2023],"tax":[24.93,2023],"dens":[101.46,2024],"urban":[79.73,2025],"migr":[12.2,2024],"ren":[100,2025]},"EGY":{"temp":[23.57,2025],"hours":[2368.51,2023],"tax":[12.5,null,"세계은행 2015(사회보장기여금 제외)"],"dens":[117.07,2024],"urban":[42.9,2025],"migr":[1,2024],"ren":[13,2025]},"DEU":{"temp":[10.08,2025],"hours":[1335.27,2023],"tax":[37.48,2023],"dens":[239.01,2024],"urban":[82.14,2025],"migr":[19.8,2024],"ren":[59.1,2025]},"ISL":{"temp":[2.87,2025],"hours":[1451.99,2023],"tax":[35.57,2023],"dens":[3.83,2024],"urban":[94.22,2025],"migr":[25.1,2024],"ren":[100,2024]},"IND":{"temp":[24.23,2025],"hours":[2382.58,2023],"tax":[17.32,2023],"dens":[488.01,2024],"urban":[35.69,2025],"migr":[0.3,2024],"ren":[24.1,2025]},"ITA":{"temp":[14.05,2025],"hours":[1701.42,2023],"tax":[41.99,2023],"dens":[199.35,2024],"urban":[69.68,2025],"migr":[11,2024],"ren":[48.8,2025]},"JPN":{"temp":[12.86,2025],"hours":[1653.9,2023],"tax":[34.86,2022],"dens":[340.12,2024],"urban":[92.3,2025],"migr":[2.8,2024],"ren":[23.6,2025]},"KEN":{"temp":[25.8,2025],"hours":[2034.65,2023],"tax":[16.07,2023],"dens":[97.15,2024],"urban":[32.21,2025],"migr":[1.8,2024],"ren":[90,2025]},"MEX":{"temp":[21.68,2025],"hours":[1628.87,2023],"tax":[14.27,2023],"dens":[67.32,2024],"urban":[80.04,2025],"migr":[1.3,2024],"ren":[23.1,2025]},"MNG":{"temp":[2.24,2025],"hours":[2200,null,"추정·PWT 결측"],"tax":[31.3,2022],"dens":[2.26,2024],"urban":[71.15,2025],"migr":[0.6,2024],"ren":[8.4,2025]},"NLD":{"temp":[11.27,2025],"hours":[1438.74,2023],"tax":[38.53,2023],"dens":[534.41,2024],"urban":[95.94,2025],"migr":[16.2,2024],"ren":[51.2,2025]},"NZL":{"temp":[11.19,2025],"hours":[1707.52,2023],"tax":[34.71,2023],"dens":[20.09,2024],"urban":[84,2025],"migr":[28.2,2024],"ren":[88.5,2025]},"NOR":{"temp":[2.5,2025],"hours":[1412.06,2023],"tax":[41.44,2023],"dens":[15.3,2024],"urban":[83.57,2025],"migr":[18.2,2024],"ren":[99,2025]},"PER":{"temp":[19.16,2025],"hours":[2142.96,2023],"tax":[16.91,2022],"dens":[26.73,2024],"urban":[85.6,2025],"migr":[5.4,2024],"ren":[63.6,2025]},"RUS":{"temp":[-2.35,2025],"hours":[2086.68,2023],"tax":[30.47,2023],"dens":[8.77,2024],"urban":[75.25,2025],"migr":[5.3,2024],"ren":[17.4,2025]},"SGP":{"temp":[27.5,null,"추정·싱가포르 기상청 평년값"],"hours":[2283.18,2023],"tax":[14.01,2023],"dens":[8329,2024],"urban":[100,2025],"migr":[48.7,2024],"ren":[5.5,2025]},"ZAF":{"temp":[18.35,2025],"hours":[2181.43,2023],"tax":[28.13,2022],"dens":[52.76,2024],"urban":[63.82,2025],"migr":[4.1,2024],"ren":[13.6,2025]},"KOR":{"temp":[13.4,2025],"hours":[1910.23,2023],"tax":[26.87,2023],"dens":[530.24,2024],"urban":[81.17,2025],"migr":[3.5,2024],"ren":[10.4,2025]},"ESP":{"temp":[15.09,2025],"hours":[1637.99,2023],"tax":[36.42,2023],"dens":[97.76,2024],"urban":[80.51,2025],"migr":[18.5,2024],"ren":[55.9,2025]},"CHE":{"temp":[6.78,2025],"hours":[1528.94,2023],"tax":[26.79,2023],"dens":[227.93,2024],"urban":[85.73,2025],"migr":[31.1,2024],"ren":[67.8,2025]},"ARE":{"temp":[28.85,2025],"hours":[2514.45,2023],"tax":[20,2022],"dens":[154.69,2024],"urban":[85.96,2025],"migr":[74,2024],"ren":[8.8,2024]},"USA":{"temp":[10.43,2025],"hours":[1788.88,2023],"tax":[24.85,2023],"dens":[37.17,2024],"urban":[80.19,2025],"migr":[15.2,2024],"ren":[25.6,2025]}};
+
+
+const STAT_META = [
+  {k:'temp',  label:'연평균 기온',          unit:'℃',     src:'Copernicus ERA5 (OWID)', fmt:v=>v.toFixed(1)},
+  {k:'dens',  label:'인구밀도',             unit:'명/km²', src:'세계은행',               fmt:v=>v>=100?Math.round(v).toLocaleString():v.toFixed(1)},
+  {k:'urban', label:'도시 인구 비율',        unit:'%',     src:'세계은행',               fmt:v=>v.toFixed(0)},
+  {k:'tax',   label:'조세부담률(사회보장 포함)', unit:'% GDP', src:'UNU-WIDER (OWID)',       fmt:v=>v.toFixed(1)},
+  {k:'hours', label:'연간 노동시간',         unit:'시간',   src:'Penn World Table (OWID)', fmt:v=>Math.round(v).toLocaleString()},
+  {k:'migr',  label:'외국 출생 인구 비율',    unit:'%',     src:'UN DESA (세계은행)',      fmt:v=>v.toFixed(1)},
+  {k:'ren',   label:'재생에너지 발전 비중',   unit:'%',     src:'Ember (OWID)',            fmt:v=>v.toFixed(0)},
+];
+
+const INFO = {
+  NOR:{name:'노르웨이', flag:'🇳🇴', tag:'피오르와 오로라의 복지 국가',
+      facts:['북부에서는 겨울에 해가 뜨지 않는 극야와 오로라를 볼 수 있어요.','공립대학 등록금이 없고, 새로 팔리는 차의 대부분이 전기차예요.'],
+      worry:['석유·가스 수출로 부유해졌지만 탄소중립을 추진해야 하는 딜레마가 있어요.','물가와 세금이 높아 생활비가 많이 들어요.']},
+  ISL:{name:'아이슬란드', flag:'🇮🇸', tag:'불과 얼음의 섬',
+      facts:['화산과 빙하가 함께 있고, 전기를 모두 지열·수력으로 만들어요.','인구가 약 40만 명인 작은 섬나라예요.'],
+      worry:['화산 폭발이 마을과 도로를 위협하기도 해요.','관광객이 크게 늘면서 물가와 집값이 올랐어요.']},
+  CAN:{name:'캐나다', flag:'🇨🇦', tag:'숲과 호수, 이민자가 함께 만드는 나라',
+      facts:['국토 면적이 세계 2위이고, 대부분 냉대·한대 기후예요.','영어와 프랑스어 두 언어가 공용어예요.'],
+      worry:['인구가 남쪽 대도시에 몰려 집값이 높아요.','원주민의 권리와 자원 개발 사이의 갈등이 있어요.']},
+  DEU:{name:'독일', flag:'🇩🇪', tag:'짧게 일하고 에너지 전환에 앞장서는 나라',
+      facts:['1년 노동시간이 세계에서 가장 짧은 편이에요.','탈원전 후 재생에너지 비중을 빠르게 늘렸어요.'],
+      worry:['고령화로 일할 사람이 부족해 이민자를 더 받아야 하는 고민이 있어요.','에너지 전환 과정에서 전기 요금이 비싸졌어요.']},
+  NLD:{name:'네덜란드', flag:'🇳🇱', tag:'자전거와 간척의 나라',
+      facts:['국토의 약 4분의 1이 해수면보다 낮아 둑과 풍차로 땅을 지켜 왔어요.','자전거 수가 인구보다 많아요.'],
+      worry:['해수면 상승에 대비해야 해요.','좁은 땅에 사람이 많아 집이 부족해요.']},
+  CHE:{name:'스위스', flag:'🇨🇭', tag:'알프스와 4개 공용어의 나라',
+      facts:['독일어·프랑스어·이탈리아어·로망슈어 4개가 공용어예요.','중요한 일은 국민투표로 자주 정해요.'],
+      worry:['세계적으로 물가가 비싼 나라 중 하나예요.','빙하가 빠르게 녹아 산악 지역의 안전이 걱정이에요.']},
+  ESP:{name:'스페인', flag:'🇪🇸', tag:'태양의 나라, 지중해의 여유',
+      facts:['여름이 덥고 건조한 지중해성 기후가 넓게 나타나요.','햇빛과 바람이 풍부해 태양광·풍력 발전이 많아요.'],
+      worry:['청년 실업률이 높은 편이에요.','가뭄과 폭염이 잦아지며 물 부족이 커지고 있어요.']},
+  ITA:{name:'이탈리아', flag:'🇮🇹', tag:'지중해와 역사 유산의 나라',
+      facts:['장화 모양의 반도 국가로, 지중해성 기후가 나타나요.','유네스코 세계유산이 가장 많은 나라 중 하나예요.'],
+      worry:['고령화와 저출산이 빠르게 진행되고 있어요.','북부와 남부의 경제 격차가 커요.']},
+  RUS:{name:'러시아', flag:'🇷🇺', tag:'세계에서 가장 넓은 나라',
+      facts:['국토 면적 세계 1위로, 시간대가 11개나 돼요.','시베리아에는 1년 내내 얼어 있는 영구동토층이 넓게 펼쳐져 있어요.'],
+      worry:['영구동토층이 녹으며 건물과 도로가 기울어지는 피해가 생겨요.','넓은 국토에 비해 인구가 서쪽에 몰려 있어요.']},
+  USA:{name:'미국', flag:'🇺🇸', tag:'넓은 땅, 자동차, 개인의 선택',
+      facts:['열대부터 한대까지 거의 모든 기후가 나타나요.','셰일가스 개발로 세계 최대 수준의 석유·가스 생산국이 됐어요.'],
+      worry:['의료비가 비싸 보험이 없으면 병원비 부담이 커요.','자동차 중심이라 대중교통이 불편한 지역이 많아요.']},
+  MEX:{name:'멕시코', flag:'🇲🇽', tag:'아스테카·마야 문명의 땅',
+      facts:['수도 멕시코시티는 해발 2,000m가 넘는 고원에 있어요.','아스테카·마야 문명의 유적이 곳곳에 남아 있어요.'],
+      worry:['수도의 지하수를 많이 써서 땅이 가라앉고 있어요.','지역 간 소득 격차가 커요.']},
+  BRA:{name:'브라질', flag:'🇧🇷', tag:'아마존과 카니발의 나라',
+      facts:['세계 최대 열대우림인 아마존이 있어요.','수력 발전 덕분에 전기 대부분이 재생에너지예요.'],
+      worry:['농지 확대로 아마존 열대우림이 줄어들고 있어요.','지역과 계층 간 소득 격차가 커요.']},
+  CHL:{name:'칠레', flag:'🇨🇱', tag:'남북으로 4,000km 넘게 뻗은 나라',
+      facts:['북쪽 아타카마 사막부터 남쪽 빙하까지 기후가 다양해요.','세계 최대의 구리 생산국이에요.'],
+      worry:['지진과 화산 활동이 활발해요.','가뭄이 길어지며 물 부족을 겪고 있어요.']},
+  PER:{name:'페루', flag:'🇵🇪', tag:'안데스와 잉카의 나라',
+      facts:['해안 사막, 안데스 산지, 아마존 밀림이 한 나라에 있어요.','잉카 문명의 유적 마추픽추가 있어요.'],
+      worry:['지진이 자주 일어나요.','안데스 빙하가 줄어 물 공급이 걱정이에요.']},
+  CRI:{name:'코스타리카', flag:'🇨🇷', tag:'생태 관광과 재생에너지의 나라',
+      facts:['수력·지열·풍력으로 거의 모든 전기를 만들어요.','국토의 약 4분의 1이 국립공원·보호구역이에요.'],
+      worry:['관광객이 늘며 자연이 받는 부담도 커졌어요.','비가 적은 해에는 수력 발전량이 줄어요.']},
+  JPN:{name:'일본', flag:'🇯🇵', tag:'거대 도시와 전통 축제가 공존하는 섬나라',
+      facts:['도쿄 대도시권은 인구가 3천만 명이 넘는 세계 최대 규모의 도시권이에요.','지역마다 오래된 마쓰리(축제)가 이어지고 있어요.'],
+      worry:['고령화와 저출산으로 시골 마을이 빠르게 비어 가요.','지진·태풍 등 자연재해가 잦아요.']},
+  CHN:{name:'중국', flag:'🇨🇳', tag:'거대한 인구와 세계의 공장',
+      facts:['인구 대부분이 동쪽 해안과 평야에 살고, 서쪽은 고원과 사막이에요.','태양광·풍력 설비가 세계에서 가장 많지만 석탄 발전도 많아요.'],
+      worry:['대도시의 대기오염 문제가 있어요.','고령화가 빠르게 진행되고 있어요.']},
+  SGP:{name:'싱가포르', flag:'🇸🇬', tag:'열대의 도시국가',
+      facts:['나라 전체가 하나의 도시인 도시국가예요.','중국계·말레이계·인도계 등이 어울려 살고, 공용어가 4개예요.'],
+      worry:['땅이 좁아 집값이 높고 대부분 고층 아파트에 살아요.','물과 에너지를 대부분 수입에 의존해요.']},
+  IND:{name:'인도', flag:'🇮🇳', tag:'젊고 빠르게 성장하는 대국',
+      facts:['세계에서 인구가 가장 많은 나라이고, 젊은 인구 비율이 높아요.','디왈리(빛의 축제) 등 오랜 전통 축제가 일상에 살아 있어요.'],
+      worry:['대도시의 대기오염이 심해요.','도시와 농촌의 격차가 커요.']},
+  MNG:{name:'몽골', flag:'🇲🇳', tag:'초원과 게르, 유목의 나라',
+      facts:['인구밀도가 세계에서 가장 낮은 나라 중 하나예요.','여름마다 씨름·말타기·활쏘기를 겨루는 나담 축제가 열려요.'],
+      worry:['겨울 난방에 석탄을 많이 써서 수도의 대기오염이 심해요.','혹한(조드)으로 가축이 대량으로 죽는 피해가 생겨요.']},
+  ARE:{name:'아랍에미리트', flag:'🇦🇪', tag:'사막 위에 세운 미래 도시',
+      facts:['개인 소득세가 없어요.','주민 4명 중 3명가량이 외국에서 온 사람들이에요.'],
+      worry:['석유 이후의 경제를 준비해야 해요.','물이 부족해 바닷물을 민물로 바꾸는 데 많은 에너지를 써요.']},
+  EGY:{name:'이집트', flag:'🇪🇬', tag:'나일강이 만든 사막의 나라',
+      facts:['국토 대부분이 사막이고, 사람들은 주로 나일강 주변에 모여 살아요.','피라미드 등 고대 문명의 유산이 있어요.'],
+      worry:['물의 대부분을 나일강 하나에 의존해요.','인구가 빠르게 늘고 있어요.']},
+  KEN:{name:'케냐', flag:'🇰🇪', tag:'사바나와 지열 발전의 나라',
+      facts:['국립공원과 사바나에서 다양한 야생동물을 볼 수 있어요.','전기의 대부분을 지열·수력 등 재생에너지로 만들어요.'],
+      worry:['아직 전기를 쓰지 못하는 농촌 가구가 있어요.','가뭄이 잦아 농업과 목축이 어려움을 겪어요.']},
+  ZAF:{name:'남아프리카공화국', flag:'🇿🇦', tag:'12개 공용어의 무지개 나라',
+      facts:['공용어가 12개나 되는 다문화 국가예요.','풍부한 석탄으로 전기 대부분을 만들어요.'],
+      worry:['전력이 부족해 계획 정전을 겪기도 해요.','소득 격차가 큰 나라 중 하나예요.']},
+  AUS:{name:'호주', flag:'🇦🇺', tag:'해안 도시와 붉은 아웃백',
+      facts:['남반구라서 크리스마스가 한여름이에요.','국토 대부분이 건조해서 사람들은 주로 해안 도시에 살아요.'],
+      worry:['가뭄과 대형 산불이 자주 일어나요.','석탄·광물 수출과 탄소 감축 사이에서 고민하고 있어요.']},
+  NZL:{name:'뉴질랜드', flag:'🇳🇿', tag:'사람보다 양이 많은 자연의 나라',
+      facts:['양의 수가 사람 수보다 몇 배나 많아요.','원주민 마오리의 언어와 문화가 국가 정체성의 중요한 부분이에요.'],
+      worry:['목축업에서 나오는 온실가스가 많아요.','지진과 화산 활동이 활발해요.']},
+};
+const COUNTRIES = Object.fromEntries(Object.entries(INFO).map(([k,c])=>[k,{...c, v:TIERS[k], stats:STATS[k]}]));
+const KOREA = {name:'한국', v:TIERS.KOR, stats:STATS.KOR};
+
+// 문항: axis = AXES 인덱스. A 선택 → 1, B 선택 → 5
+const QUESTIONS = [
+  {axis:0, title:'어디서 살아 볼까?',
+   A:{icon:'🏖️', text:'1년 내내 반팔, 카니발 축제가 열리는 열대 해변', c:'BRA', fact:'국토 대부분이 열대 기후예요.'},
+   B:{icon:'🌌', text:'영하 30℃의 긴 겨울, 밤하늘엔 오로라', c:'CAN', fact:'북부는 겨울이 길고 오로라가 자주 보여요.'}},
+  {axis:0, title:'어떤 날씨를 견딜까?',
+   A:{icon:'🏜️', text:'모래사막 위, 실내 스키장이 있는 더운 도시', c:'ARE', fact:'두바이에는 쇼핑몰 안에 실내 스키장이 있어요.'},
+   B:{icon:'🐎', text:'초원에서 게르를 치고 사는 추운 고원', c:'MNG', fact:'겨울엔 영하 30℃ 아래로 내려가요.'}},
+  {axis:1, title:'내 동네의 모습은?',
+   A:{icon:'🏙️', text:'지하철역 5분 거리에 모든 것, 나라 전체가 도시', c:'SGP', fact:'나라 전체가 하나의 도시인 도시국가예요.'},
+   B:{icon:'🐑', text:'가장 가까운 이웃은 1km 밖, 사람보다 양이 더 많은 곳', c:'NZL', fact:'양의 수가 사람보다 몇 배 많아요.'}},
+  {axis:1, title:'창밖 풍경을 고르자면?',
+   A:{icon:'🚇', text:'세계 최대 도시권, 몇 분마다 오는 전철', c:'JPN', fact:'도쿄 대도시권 인구는 3천만 명이 넘어요.'},
+   B:{icon:'🦒', text:'국립공원 옆 마을, 창밖으로 기린이 지나감', c:'KEN', fact:'국립공원과 보호구역이 넓게 펼쳐져 있어요.'}},
+  {axis:2, title:'세금과 복지, 어느 쪽?',
+   A:{icon:'🎓', text:'세금을 많이 내지만, 대학 등록금은 무료', c:'NOR', fact:'공립대학 등록금이 없어요.'},
+   B:{icon:'💳', text:'세금은 적게 내고, 의료보험은 내가 골라서 가입', c:'USA', fact:'직장이나 개인이 보험을 골라 가입하는 경우가 많아요.'}},
+  {axis:2, title:'내 월급, 어떻게 쓸까?',
+   A:{icon:'👶', text:'부모 육아휴직 1년 넘게, 휴직 중 수당은 나라가 지원', c:'DEU', fact:'육아휴직 기간 동안 부모수당이 나와요.'},
+   B:{icon:'💰', text:'소득세 0%! 필요한 서비스는 내 돈으로 선택', c:'ARE', fact:'개인 소득세가 없어요.'}},
+  {axis:3, title:'나의 일하는 스타일은?',
+   A:{icon:'🌞', text:'8월엔 길게 여름휴가, 도시 전체가 쉬어 가는 나라', c:'ESP', fact:'8월에 길게 휴가를 떠나는 문화가 있어요.'},
+   B:{icon:'📈', text:'경쟁은 치열하지만 세계 최고 수준의 경쟁력', c:'SGP', fact:'국가 경쟁력 평가에서 늘 최상위권이에요.'}},
+  {axis:3, title:'저녁 6시, 나는 어디에?',
+   A:{icon:'⚽', text:'1년 노동시간이 세계에서 가장 짧은 편, 퇴근 후엔 동네 클럽 활동', c:'DEU', fact:'1년 노동시간이 OECD에서 가장 짧은 편이에요.'},
+   B:{icon:'🚀', text:'오래 일하지만 경제가 쑥쑥 크는 젊은 나라', c:'IND', fact:'젊은 인구가 많고 경제가 빠르게 성장하고 있어요.'}},
+  {axis:4, title:'우리 동네 분위기는?',
+   A:{icon:'🌐', text:'국민 4명 중 1명이 외국 태생, 거리에서 여러 언어가 들려요', c:'CAN', fact:'이민자를 적극적으로 받아들이는 나라예요.'},
+   B:{icon:'🪔', text:'수천 년 전통의 \'빛의 축제\'가 온 나라를 밝혀요', c:'IND', fact:'디왈리 축제 기간엔 집집마다 등불을 밝혀요.'}},
+  {axis:4, title:'어떤 이웃과 살까?',
+   A:{icon:'🗣️', text:'공용어만 4개, 이웃 4명 중 1명 이상이 외국인', c:'CHE', fact:'독일어·프랑스어·이탈리아어·로망슈어가 공용어예요.'},
+   B:{icon:'🏹', text:'유목 전통을 지키며 씨름·말타기·활쏘기 축제를 여는 마을', c:'MNG', fact:'여름마다 나담 축제가 열려요.'}},
+  {axis:5, title:'나라의 에너지, 어디서?',
+   A:{icon:'🌋', text:'땅속 열(지열)과 물로 전기 대부분을 만드는 나라', c:'KEN', fact:'전기의 대부분이 재생에너지예요.'},
+   B:{icon:'🏭', text:'땅속 석탄을 캐서 전기 대부분을 만드는 광물 자원 대국', c:'ZAF', fact:'풍부한 석탄으로 전기 대부분을 만들어요.'}},
+  {axis:5, title:'내 차를 고른다면?',
+   A:{icon:'🔌', text:'새 차는 대부분 전기차, 도시 곳곳에 충전소', c:'NOR', fact:'새로 팔리는 차의 대부분이 전기차예요.'},
+   B:{icon:'🛻', text:'넓은 땅, 큰 차로 어디든! 석유·가스도 넉넉', c:'USA', fact:'세계 최대 수준의 석유·가스 생산국이에요.'}},
+];
+
+const MAX_STARS = 3;
+const ALPHA = 200;   // 1·2위 유사도 차이 → 퍼센트 변환 계수 (시뮬레이션상 중앙값 약 70%)
+
+/* ═══════════ 상태 ═══════════ */
+let qi = 0, answers = [], stars = [], locked = false;
+
+const $ = id => document.getElementById(id);
+function show(id){ ['s-start','s-q','s-load','s-res'].forEach(s=>{ const el=$(s); el.classList.toggle('hidden', s!==id); el.classList.remove('screen'); void el.offsetWidth; if(s===id) el.classList.add('screen'); }); window.scrollTo({top:0,behavior:'smooth'}); }
+
+/* ═══════════ 시작 ═══════════ */
+$('axisChips').innerHTML = AXES.map(a=>`<span class="chip ${a.area}">${a.area==='geo'?'🗺️':'🏛️'} ${a.name}</span>`).join('');
+$('btnStart').onclick = start;
+function start(){ qi=0; answers=Array(QUESTIONS.length).fill(null); stars=Array(QUESTIONS.length).fill(false); $('reviewBox').classList.add('hidden'); show('s-q'); renderQ(); }
+
+/* ═══════════ 문항 ═══════════ */
+function renderQ(){
+  const q = QUESTIONS[qi], ax = AXES[q.axis];
+  locked = false;
+  $('qCount').textContent = `${qi+1} / ${QUESTIONS.length}`;
+  $('progFill').style.width = `${qi/QUESTIONS.length*100}%`;
+  $('qAxis').innerHTML = `<span class="chip ${ax.area}">${ax.area==='geo'?'🗺️ 지리':'🏛️ 일반사회'} · ${ax.name}</span>`;
+  $('qTitle').textContent = q.title;
+  [['optA',q.A],['optB',q.B]].forEach(([id,o])=>{
+    const el = $(id);
+    el.disabled = false;
+    // 다음 문항으로 넘어갈 때 되돌아가는 애니메이션 중 정답이 비치지 않도록 즉시 앞면으로
+    const inner = el.querySelector('.opt-inner');
+    inner.style.transition = 'none';
+    el.classList.remove('flipped','chosen','notchosen');
+    void inner.offsetWidth;
+    inner.style.transition = '';
+    el.querySelector('.opt-icon').textContent = o.icon;
+    el.querySelector('.opt-text').textContent = o.text;
+    const c = COUNTRIES[o.c];
+    el.querySelector('.big-flag').textContent = c.flag;
+    el.querySelector('.cname').textContent = c.name;
+    el.querySelector('.fact').textContent = o.fact;
+    el.querySelector('.my-pick').classList.add('hidden');
+  });
+  updateStar();
+  $('revealMsg').textContent = '';
+  $('nextWrap').classList.add('hidden');
+}
+function starsUsed(){ return stars.filter(Boolean).length; }
+function updateStar(){
+  const on = stars[qi], left = MAX_STARS - starsUsed();
+  $('starBtn').classList.toggle('on', on);
+  $('starBtn').disabled = !on && left<=0;
+  $('starLeft').textContent = `⭐ ${left}`;
+}
+$('starBtn').onclick = ()=>{ if(!stars[qi] && starsUsed()>=MAX_STARS) return; stars[qi]=!stars[qi]; updateStar(); };
+$('optA').onclick = ()=>pick('A');
+$('optB').onclick = ()=>pick('B');
+function pick(side){
+  if(locked) return; locked = true;
+  answers[qi] = side;
+  const q = QUESTIONS[qi];
+  const me = side==='A'?$('optA'):$('optB'), other = side==='A'?$('optB'):$('optA');
+  me.classList.add('chosen'); other.classList.add('notchosen');
+  me.querySelector('.my-pick').classList.remove('hidden');
+  $('optA').classList.add('flipped');
+  setTimeout(()=>$('optB').classList.add('flipped'), 140);
+  $('optA').disabled = $('optB').disabled = true;
+  $('starBtn').disabled = true;
+  const c = COUNTRIES[q[side].c];
+  $('revealMsg').innerHTML = `내가 고른 건 <span class="flag">${c.flag}</span> <b>${c.name}</b>의 모습이었어요!`;
+  $('progFill').style.width = `${(qi+1)/QUESTIONS.length*100}%`;
+  setTimeout(()=>{ $('nextWrap').classList.remove('hidden'); $('btnNext').textContent = qi===QUESTIONS.length-1 ? '결과 보기 🌏' : '다음 →'; }, 650);
+}
+$('btnNext').onclick = ()=>{ if(qi < QUESTIONS.length-1){ qi++; renderQ(); } else { analyze(); } };
+
+/* ═══════════ 계산 ═══════════ */
+function userVector(){
+  // 축마다 가중 평균 (A=1, B=5, ⭐=×2) + 축 가중치(⭐가 있으면 커짐)
+  const sum = Array(6).fill(0), wsum = Array(6).fill(0);
+  QUESTIONS.forEach((q,i)=>{ if(!answers[i]) return; const w = stars[i]?2:1; sum[q.axis] += w*(answers[i]==='A'?1:5); wsum[q.axis] += w; });
+  const v = sum.map((s,i)=> wsum[i]? s/wsum[i] : 3);
+  const w = wsum.map(x=> x/2);      // 기본 1, ⭐ 하나면 1.5, 둘이면 2
+  return {v, w};
+}
+function cosine(u, c, w){
+  let d=0, nu=0, nc=0;
+  for(let i=0;i<6;i++){ const a=u[i]-3, b=c[i]-3; d+=w[i]*a*b; nu+=w[i]*a*a; nc+=w[i]*b*b; }
+  if(!nu || !nc) return 0;
+  return d/Math.sqrt(nu*nc);
+}
+function manhattan(u,c,w){ let d=0,t=0; for(let i=0;i<6;i++){ d+=w[i]*Math.abs(u[i]-c[i]); t+=w[i]*4; } return 1-2*d/t; }
+function compute(){
+  const {v,w} = userVector();
+  const allMid = v.every(x=>x===3);   // 모든 축이 반반이면 코사인이 정의되지 않아 거리로 대체
+  const list = Object.entries(COUNTRIES).map(([k,c])=>({k, ...c, s: allMid? manhattan(v,c.v,w) : cosine(v,c.v,w)}))
+                    .sort((a,b)=>b.s-a.s);
+  const p1 = Math.round(Math.min(85, Math.max(55, 50 + (list[0].s - list[1].s)*ALPHA)));
+  return {v, w, list, p1, p2:100-p1};
+}
+
+/* ═══════════ 분석 중 연출 ═══════════ */
+function analyze(){
+  show('s-load');
+  const flags = Object.values(COUNTRIES).map(c=>c.flag);
+  let n=0; const t = setInterval(()=>{ $('flagRoll').textContent = flags[n++%flags.length]; }, 90);
+  setTimeout(()=>{ clearInterval(t); renderResult(); }, 1600);
+}
+
+/* ═══════════ 결과 ═══════════ */
+function renderResult(){
+  const r = compute(), c1 = r.list[0], c2 = r.list[1];
+  show('s-res');
+  $('resTitle').innerHTML = `당신은 <span class="c1">${c1.name}</span>${josa(c1.name,'과','와')}<br/>가장 잘 맞아요!`;
+  $('mixBox').innerHTML = [[c1,r.p1,''],[c2,r.p2,'second']].map(([c,p,cls])=>`
+    <div class="mix-row ${cls}">
+      <div class="mix-flag">${c.flag}</div>
+      <div class="mix-body">
+        <div class="mix-name"><span>${c.name} <small style="color:var(--text3);font-weight:700;font-size:12px">· ${c.tag}</small></span><span class="mix-pct" data-to="${p}">0%</span></div>
+        <div class="bar"><div class="bar-fill" data-to="${p}"></div></div>
+      </div>
+    </div>`).join('');
+  requestAnimationFrame(()=>setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>b.style.width=b.dataset.to+'%');
+    document.querySelectorAll('.mix-pct').forEach(el=>countUp(el, +el.dataset.to));
+  }, 120));
+
+  // 요약 문장: 가장 뚜렷한 축 2개
+  const strong = r.v.map((x,i)=>({i, d:Math.abs(x-3)*r.w[i], side:x<3?'L':'R'})).filter(o=>o.d>0).sort((a,b)=>b.d-a.d).slice(0,2);
+  const phr = strong.map(o=> AXES[o.i][o.side+'p']);
+  $('summary').innerHTML = phr.length
+    ? `<b>${phr.join('</b>, 그리고 <b>')}</b>${josa(phr[phr.length-1],'을','를')} 고른 당신.<br/><span class="flag">${c1.flag}</span> ${c1.name} ${r.p1}%에 <span class="flag">${c2.flag}</span> ${c2.name} ${r.p2}%가 섞인 취향이에요!`
+    : `모든 기준에서 균형을 잡은 당신! <span class="flag">${c1.flag}</span> ${c1.name}${josa(c1.name,'과','와')} <span class="flag">${c2.flag}</span> ${c2.name}의 모습이 고루 닮았어요.`;
+
+  // 레이더 + 축 비교
+  $('lgCountry').textContent = c1.name;
+  $('radar').innerHTML = radarSVG(r.v, c1.v, KOREA.v);
+  $('axisList').innerHTML = AXES.map((a,i)=>`
+    <div class="axis-item"><span class="l">${a.L}</span>
+      <div class="axis-track">
+        <span class="axis-dot cn" style="left:${(c1.v[i]-1)/4*100}%" title="${c1.name}"></span>
+        <span class="axis-dot me" style="left:${(r.v[i]-1)/4*100}%" title="나"></span>
+      </div><span>${a.R}</span></div>`).join('');
+
+  // 나라 정보
+  $('infoLabel').innerHTML = `<span class="flag">${c1.flag}</span>&nbsp;${c1.name} 알아보기`;
+  setInfoTab('facts', c1);
+  document.querySelectorAll('.info-tab').forEach(b=>b.onclick=()=>setInfoTab(b.dataset.tab, c1));
+  $('discuss').innerHTML = `💬 생각해 보기: ${c1.name}의 모습 중 한국에 들여오고 싶은 것은? 그때 생기는 고민거리는 어떻게 해결할 수 있을까?`;
+
+  // 전체 순위 (닮은 정도 = 유사도를 0~100으로)
+  $('rankSummary').textContent = `▾ ${r.list.length}개 나라 전체 순위 보기`;
+  $('rankList').innerHTML = r.list.map((c,i)=>{ const pct = Math.round((c.s+1)/2*100); return `
+    <div class="rank-row ${i<2?'top':''}"><span class="n">${i+1}</span><span class="f">${c.flag}</span><span>${c.name}</span>
+      <div class="mini-bar"><div style="width:${pct}%"></div></div><span class="p">${pct}</span></div>`; }).join('')
+    + `<p class="note" style="margin-top:10px">숫자는 '닮은 정도'(0~100)예요. 위의 % 조합은 1·2위 두 나라 사이의 비율이에요.</p>`;
+
+  // 선택 다시 보기
+  $('reviewBox').innerHTML = `<div class="label">내 선택 다시 보기</div>` + QUESTIONS.map((q,i)=>{ const o=q[answers[i]], c=COUNTRIES[o.c];
+    return `<div class="rule-row"><span class="rule-num">${i+1}</span><span>${stars[i]?'<span class="flag">⭐</span> ':''}${o.text} → <span class="flag">${c.flag}</span> <b>${c.name}</b></span></div>`; }).join('');
+}
+// 받침 여부로 조사 선택 (예: 노르웨이 → '와', 선택 → '을')
+function josa(word, withBatchim, without){ const ch = word.charCodeAt(word.length-1); if(ch<0xAC00||ch>0xD7A3) return without; return (ch-0xAC00)%28 ? withBatchim : without; }
+function setInfoTab(tab, c){
+  document.querySelectorAll('.info-tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  const items = tab==='facts'? c.facts : c.worry;
+  const list = `<ul class="${tab}">${items.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+  if(tab!=='facts'){ $('infoBody').innerHTML = list; return; }
+  const cell = (st,m)=>{ const d=st&&st[m.k]; if(!d) return '<td>–</td>'; const est=d[1]==null; return `<td>${m.fmt(d[0])}<small>${m.unit}${est?' <b class="est" title="'+(d[2]||'추정')+'">추정</b>':''}</small></td>`; };
+  const yr = st=>{ const ys=STAT_META.map(m=>st[m.k]&&st[m.k][1]).filter(Boolean); return ys.length? Math.min(...ys)+'~'+Math.max(...ys) : ''; };
+  $('infoBody').innerHTML = `<table class="stat-table">
+      <thead><tr><th>지표</th><th><span class="flag">${c.flag}</span> ${c.name}</th><th><span class="flag">🇰🇷</span> 한국</th></tr></thead>
+      <tbody>${STAT_META.map(m=>`<tr><th>${m.label}</th>${cell(c.stats,m)}${cell(KOREA.stats,m)}</tr>`).join('')}</tbody>
+    </table>
+    <p class="stat-src">출처: ${[...new Set(STAT_META.map(m=>m.src))].join(' · ')} / ${yr(c.stats)}년 최신값</p>` + list;
+}
+function countUp(el, to){ const t0=performance.now(), dur=1400; (function f(t){ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3); el.textContent=Math.round(to*e)+'%'; if(p<1) requestAnimationFrame(f); })(t0); }
+
+function radarSVG(me, cn, kr){
+  const W=520,H=370,cx=260,cy=190,R=118,n=6;
+  const pt=(i,val)=>{ const ang=-Math.PI/2+i*2*Math.PI/n, rr=R*(val-1)/4*0.92+R*0.08; return [cx+rr*Math.cos(ang), cy+rr*Math.sin(ang)]; };
+  const poly=(vals)=>vals.map((v,i)=>pt(i,v).join(',')).join(' ');
+  let g='';
+  [1,2,3,4,5].forEach(l=>{ g+=`<polygon points="${poly(Array(6).fill(l))}" fill="${l===5?'#fbf8f1':'none'}" stroke="#d9d0bd" stroke-width="${l===3?1.4:0.8}" ${l===3?'stroke-dasharray="3 3"':''}/>`; });
+  for(let i=0;i<n;i++){ const [x,y]=pt(i,5); g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2dacb" stroke-width="0.8"/>`; }
+  g+=`<polygon points="${poly(kr)}" fill="none" stroke="#8a8f99" stroke-width="1.6" stroke-dasharray="5 4"/>`;
+  g+=`<polygon points="${poly(cn)}" fill="rgba(29,95,191,.12)" stroke="#1d5fbf" stroke-width="2"/>`;
+  g+=`<polygon points="${poly(me)}" fill="rgba(201,143,18,.22)" stroke="#c98f12" stroke-width="2.6"/>`;
+  me.forEach((v,i)=>{ const [x,y]=pt(i,v); g+=`<circle cx="${x}" cy="${y}" r="4" fill="#c98f12" stroke="#fff" stroke-width="1.5"/>`; });
+  // 축 라벨: 각 축은 '바깥쪽 = 오른쪽(5) 값'
+  AXES.forEach((a,i)=>{ const ang=-Math.PI/2+i*2*Math.PI/n, x=cx+(R+30)*Math.cos(ang), y=cy+(R+26)*Math.sin(ang);
+    const anchor = Math.abs(Math.cos(ang))<0.2?'middle':(Math.cos(ang)>0?'start':'end');
+    g+=`<text x="${x}" y="${y-6}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#3f4552" font-family="Nanum Gothic">${a.name}</text>`;
+    g+=`<text x="${x}" y="${y+10}" text-anchor="${anchor}" font-size="11" fill="#646a76" font-family="Nanum Gothic">바깥 = ${a.R}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="성향 비교 레이더 차트">${g}</svg>`;
+}
+
+$('btnRetry').onclick = start;
+$('btnReview').onclick = ()=>{ $('reviewBox').classList.toggle('hidden'); };
+</script>
+</body>
+</html>
